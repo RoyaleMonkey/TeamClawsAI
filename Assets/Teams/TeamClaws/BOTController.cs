@@ -8,6 +8,7 @@ namespace TeamClaws
 
 	public class BOTController : BaseSpaceShipController
 	{
+		public InputData inputData;
 		private Blackboard _blackboard;
 
 		public override void Initialize(SpaceShip spaceship, GameData data)
@@ -18,12 +19,8 @@ namespace TeamClaws
 
 		public override InputData UpdateInput(SpaceShip spaceship, GameData data)
 		{
-			float thrust = 1.0f;
-			float targetOrient = spaceship.Orientation + 90.0f;
-
 			_blackboard.UpdateData(data);
-
-			return new InputData(thrust, targetOrient, _blackboard.TriggerShoot, false, false);
+			return (inputData);
 		}
 	}
 
