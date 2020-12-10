@@ -5,11 +5,12 @@ using BehaviorDesigner.Runtime;
 
 namespace TeamClaws
 {
-    public class Shoot : Action
+    public class StopMakeShockwave : Action
     {
         public override TaskStatus OnUpdate()
         {
-            GetComponent<BOTController>()._blackboard._latestGameData.SpaceShips[GetComponent<BOTController>()._blackboard._owner].Shoot();
+            ref InputData inputData = ref GetComponent<BOTController>().inputData;
+            inputData.fireShockwave = false;
             return TaskStatus.Success;
         }
     }

@@ -5,11 +5,12 @@ using BehaviorDesigner.Runtime;
 
 namespace TeamClaws
 {
-    public class Shoot : Action
+    public class DropMine : Action
     {
         public override TaskStatus OnUpdate()
         {
-            GetComponent<BOTController>()._blackboard._latestGameData.SpaceShips[GetComponent<BOTController>()._blackboard._owner].Shoot();
+            ref InputData inputData = ref GetComponent<BOTController>().inputData;
+            inputData.dropMine = true;
             return TaskStatus.Success;
         }
     }

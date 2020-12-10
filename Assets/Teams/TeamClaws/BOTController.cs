@@ -9,7 +9,9 @@ namespace TeamClaws
 	public class BOTController : BaseSpaceShipController
 	{
 		public InputData inputData;
-		private Blackboard _blackboard;
+		public Blackboard _blackboard;
+
+		private bool DropedMine = false;
 
 		public override void Initialize(SpaceShip spaceship, GameData data)
 		{
@@ -20,6 +22,16 @@ namespace TeamClaws
 		public override InputData UpdateInput(SpaceShip spaceship, GameData data)
 		{
 			_blackboard.UpdateData(data);
+			if (inputData.dropMine && !DropedMine)
+			{
+				DropedMine = true;
+			}
+			else if (inputData.dropMine && DropedMine)
+			{
+				inputData.dropMine = false;
+				DropedMine = false;
+			}
+			
 			return (inputData);
 		}
 	}
