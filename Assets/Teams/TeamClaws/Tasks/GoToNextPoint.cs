@@ -40,7 +40,7 @@ namespace TeamClaws
             //check for asteroids
             foreach (RaycastHit2D hit in hit2D)
             {
-                if (hit.collider != null)
+                if (hit.collider != null && !asteroidDetected)
                 {
 
                     if (hit.collider.CompareTag("Asteroid"))
@@ -111,38 +111,50 @@ namespace TeamClaws
 
                     if (goUp)
                     {
-                        if (Mathf.Abs(spaceShip.Position.y) > Mathf.Abs(maxY.y))
+                        if (Vector2.Distance(spaceShip.Position, maxY) > 1)
                         {
+                            Debug.Log("stop");
                             goUp = false;
-                            asteroidDetected = false;
                             distanceCheck = false;
+                            asteroidDetected = false;
+                            newOrient = Mathf.Atan2(wayPointTransform.Value.position.y - spaceShip.Position.y, wayPointTransform.Value.position.x - spaceShip.Position.x) * 180 / Mathf.PI;
+                            inputData.targetOrientation = newOrient;
                         }
                     }
                     if (goDown)
                     {
-                        if (Mathf.Abs(spaceShip.Position.y) < Mathf.Abs(minY.y))
+                        if (Vector2.Distance(spaceShip.Position, minY) > 1)
                         {
+                            Debug.Log("stop");
                             goDown = false;
-                            asteroidDetected = false;
                             distanceCheck = false;
+                            asteroidDetected = false;
+                            newOrient = Mathf.Atan2(wayPointTransform.Value.position.y - spaceShip.Position.y, wayPointTransform.Value.position.x - spaceShip.Position.x) * 180 / Mathf.PI;
+                            inputData.targetOrientation = newOrient;
                         }
                     }
                     if (goLeft)
                     {
-                        if (Mathf.Abs(spaceShip.Position.x) < Mathf.Abs(minX.x))
+                        if (Vector2.Distance(spaceShip.Position, minX) > 1)
                         {
+                            Debug.Log("stop");
                             goLeft = false;
-                            asteroidDetected = false;
                             distanceCheck = false;
+                            asteroidDetected = false;
+                            newOrient = Mathf.Atan2(wayPointTransform.Value.position.y - spaceShip.Position.y, wayPointTransform.Value.position.x - spaceShip.Position.x) * 180 / Mathf.PI;
+                            inputData.targetOrientation = newOrient;
                         }
                     }
                     if (goRight)
                     {
-                        if (Mathf.Abs(spaceShip.Position.x) > Mathf.Abs(maxX.x))
+                        if (Vector2.Distance(spaceShip.Position, maxX) > 1)
                         {
+                            Debug.Log("stop");
                             goRight = false;
-                            asteroidDetected = false;
                             distanceCheck = false;
+                            asteroidDetected = false;
+                            newOrient = Mathf.Atan2(wayPointTransform.Value.position.y - spaceShip.Position.y, wayPointTransform.Value.position.x - spaceShip.Position.x) * 180 / Mathf.PI;
+                            inputData.targetOrientation = newOrient;
                         }
                     }
                 }
