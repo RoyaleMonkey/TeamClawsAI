@@ -9,8 +9,6 @@ namespace TeamClaws
     {
         //references
         public SharedTransform wayPointTransform;
-        private Blackboard _blackboard;
-        private SpaceShip spaceShip;
 
         //dodge variables
         private Vector2 minY;
@@ -30,15 +28,114 @@ namespace TeamClaws
         {
             //references
             ref InputData inputData = ref GetComponent<BOTController>().inputData;
-            _blackboard = GetComponent<BOTController>()._blackboard;
-            spaceShip = _blackboard._latestGameData.SpaceShips[_blackboard._owner];
+            ref Blackboard _blackboard = ref GetComponent<BOTController>()._blackboard;
+            SpaceShip spaceShip = _blackboard._latestGameData.SpaceShips[_blackboard._owner];
 
             //raycast
-            RaycastHit2D[] hit2D = Physics2D.LinecastAll(spaceShip.transform.position, spaceShip.transform.position + spaceShip.transform.right * 2);
+            RaycastHit2D hit2D = Physics2D.Linecast(spaceShip.transform.position, spaceShip.transform.position + spaceShip.transform.right, 1 << 16);
             Debug.DrawLine(spaceShip.transform.position, spaceShip.transform.position + spaceShip.transform.right * 2);
+            
+            RaycastHit2D velocityHit = Physics2D.Linecast(spaceShip.transform.position, spaceShip.transform.position + (Vector3)spaceShip.Velocity, 1 << 13);
+            Vector3 velocityRight = Quaternion.AngleAxis(5, Vector3.forward) * ((spaceShip.transform.position + (Vector3)spaceShip.Velocity) - spaceShip.transform.position);
+            Vector3 velocityLeft = Quaternion.AngleAxis(-5, Vector3.forward) * ((spaceShip.transform.position + (Vector3)spaceShip.Velocity) - spaceShip.transform.position);
+            RaycastHit2D velocityHitRight = Physics2D.Linecast(spaceShip.transform.position, spaceShip.transform.position + velocityRight, 1 << 13);
+            RaycastHit2D velocityHitLeft = Physics2D.Linecast(spaceShip.transform.position, spaceShip.transform.position + velocityLeft, 1 << 13);
+            Debug.DrawLine(spaceShip.transform.position, spaceShip.transform.position + (Vector3)spaceShip.Velocity);
+            Debug.DrawLine(spaceShip.transform.position, spaceShip.transform.position + velocityRight);
+            Debug.DrawLine(spaceShip.transform.position, spaceShip.transform.position + velocityLeft);
+
+
+            Vector3 right = Quaternion.AngleAxis(15, Vector3.forward) * ((spaceShip.transform.position + spaceShip.transform.right) - spaceShip.transform.position);
+            Vector3 left = Quaternion.AngleAxis(-15, Vector3.forward) * ((spaceShip.transform.position + spaceShip.transform.right) - spaceShip.transform.position);
+
+            RaycastHit2D hit2DRight = Physics2D.Linecast(spaceShip.transform.position, spaceShip.transform.position + right, 1 << 12);
+            RaycastHit2D hit2DLeft = Physics2D.Linecast(spaceShip.transform.position, spaceShip.transform.position + left, 1 << 12);
+            Debug.DrawLine(spaceShip.transform.position, spaceShip.transform.position + right);
+            Debug.DrawLine(spaceShip.transform.position, spaceShip.transform.position + left);
+
+            float velocityOrientation = Vector2.SignedAngle(Vector2.right, spaceShip.Velocity);
+
+            if (hit2D.collider && hit2D.collider.CompareTag("Mine"))
+            {
+                Debug.Log("Shoot Mine!");
+                GetComponent<BOTController>()._blackboard._latestGameData.SpaceShips[GetComponent<BOTController>()._blackboard._owner].Shoot();
+            }
+            else if ((velocityHit.collider && velocityHit.collider.CompareTag("Mine")))
+            {
+                float DiffVelocityToTarget = Vector2.SignedAngle(spaceShip.Velocity, (Vector2)velocityHit.collider.transform.position - spaceShip.Position);
+                float DiffIncreased = DiffVelocityToTarget * 1.5f;
+                DiffIncreased = Mathf.Clamp(DiffIncreased, -179, 179);
+                inputData.targetOrientation = velocityOrientation + DiffIncreased;
+
+                inputData.thrust = 0f;
+                return TaskStatus.Running;
+            }
+            else if (velocityHitRight.collider && velocityHitRight.collider.CompareTag("Mine"))
+            {
+                float DiffVelocityToTarget = Vector2.SignedAngle(spaceShip.Velocity, (Vector2)velocityHitRight.collider.transform.position - spaceShip.Position);
+                float DiffIncreased = DiffVelocityToTarget * 1.5f;
+                DiffIncreased = Mathf.Clamp(DiffIncreased, -179, 179);
+                inputData.targetOrientation = velocityOrientation + DiffIncreased;
+
+                inputData.thrust = 0f;
+                return TaskStatus.Running;
+            }
+            else if (velocityHitLeft.collider && velocityHitLeft.collider.CompareTag("Mine"))
+            {
+                float DiffVelocityToTarget = Vector2.SignedAngle(spaceShip.Velocity, (Vector2)velocityHitLeft.collider.transform.position - spaceShip.Position);
+                float DiffIncreased = DiffVelocityToTarget * 1.5f;
+                DiffIncreased = Mathf.Clamp(DiffIncreased, -179, 179);
+                inputData.targetOrientation = velocityOrientation + DiffIncreased;
+
+                inputData.thrust = 0f;
+                return TaskStatus.Running;
+            }
+
+
+            float diffVelocityToTarget = Vector2.SignedAngle(spaceShip.Velocity, (Vector2)wayPointTransform.Value.position - spaceShip.Position);
+            float diffIncreased = diffVelocityToTarget * 1.5f;
+            diffIncreased = Mathf.Clamp(diffIncreased, -179, 179);
+            float OrientTarget = velocityOrientation + diffIncreased;
+
+            inputData.thrust = 1f;
+
+            if (hit2DRight.collider == null && hit2DLeft.collider == null)
+            {
+                //Debug.Log("FIRST TARGET");
+                newOrient = OrientTarget;
+            }
+            else if (hit2DRight.collider == null && hit2DLeft.collider != null && hit2DLeft.collider.CompareTag("Asteroid"))
+            {
+                //Debug.Log("RIGHT");
+                newOrient = (Mathf.Atan2((spaceShip.transform.position + right).y, (spaceShip.transform.position + right).x) * 180 / Mathf.PI) - 90;
+            }
+            else if (hit2DRight.collider != null && hit2DLeft.collider == null && hit2DRight.collider.CompareTag("Asteroid"))
+            {
+                //Debug.Log("LEFT");
+                newOrient = (Mathf.Atan2((spaceShip.transform.position + left).y, (spaceShip.transform.position + left).x) * 180 / Mathf.PI) + 90;
+            }
+
+            else if (hit2DRight.distance >= hit2DLeft.distance && hit2DLeft.collider.CompareTag("Asteroid") && hit2DRight.collider.CompareTag("Asteroid"))
+            {
+                //Debug.Log("RIGHT");
+                newOrient = (Mathf.Atan2((spaceShip.transform.position + right).y, (spaceShip.transform.position + right).x) * 180 / Mathf.PI) - 90;
+            }
+            else if (hit2DRight.distance < hit2DLeft.distance && hit2DLeft.collider.CompareTag("Asteroid") && hit2DRight.collider.CompareTag("Asteroid"))
+            {
+                //Debug.Log("LEFT");
+                newOrient = (Mathf.Atan2((spaceShip.transform.position + left).y, (spaceShip.transform.position + left).x) * 180 / Mathf.PI) + 90;
+            }
+            else
+            {
+                //Debug.Log("LAST TARGET");
+                newOrient = OrientTarget;
+            }
+
+            inputData.targetOrientation = newOrient;
+
 
             //check for asteroids
-            foreach (RaycastHit2D hit in hit2D)
+            /*foreach (RaycastHit2D hit in hit2D)
             {
                 if (hit.collider != null && !asteroidDetected)
                 {
@@ -151,13 +248,17 @@ namespace TeamClaws
                 newOrient = Mathf.Atan2(wayPointTransform.Value.position.y - spaceShip.Position.y, wayPointTransform.Value.position.x - spaceShip.Position.x) * 180 / Mathf.PI;
                 inputData.targetOrientation = newOrient;
                 inputData.thrust = 1;
-            }
+            }*/
 
 
             if (wayPointTransform.Value.gameObject.GetComponent<WayPoint>().Owner == spaceShip.Owner)
             {
                 //change target
                 inputData.thrust = 0;
+                int decrement = (_blackboard._behaviorTree.GetVariable("NbWayPointToTakeInCluster") as SharedInt).Value - 1;
+                if (decrement < 0)
+                    decrement = 0;
+                _blackboard._behaviorTree.SetVariableValue("NbWayPointToTakeInCluster", decrement);
                 return TaskStatus.Success;
             }
             return TaskStatus.Running;

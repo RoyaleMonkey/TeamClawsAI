@@ -52,30 +52,36 @@ namespace TeamClaws
 		public void UpdateData(GameData gameData)
 		{
 			_latestGameData = gameData;
-
-			//_behaviorTree.SetVariableValue("SomeVariable", 1.5f);
-			//_stateMachine.SetFloat("SomeVariable", 1.5f);
-
-			TriggerShoot = CanHit(gameData, ShootTimeTolerance);
-			if (TriggerShoot && new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds - ShootStartTimer >= 2000)
+			if (gameData.SpaceShips[_owner].IsStun())
 			{
-				ShootStartTimer = new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds;
-				_behaviorTree.SetVariableValue("TriggerShoot", TriggerShoot);
-			}
-			else
-            {
-				_behaviorTree.SetVariableValue("TriggerShoot", false);
-			}
-
-			TriggerMakeShockwave = CanMakeShockwave(gameData);
-			if (TriggerMakeShockwave && new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds - ShockwaveStartTimer >= 2000)
-			{
-				ShockwaveStartTimer = new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds;
-				_behaviorTree.SetVariableValue("TriggerMakeShockwave", TriggerMakeShockwave);
+				_behaviorTree.SetVariableValue("IsStun", true);
+				_behaviorTree.SetVariableValue("NbWayPointToTakeInCluster", 0);
 			}
 			else
 			{
-				_behaviorTree.SetVariableValue("TriggerMakeShockwave", false);
+				_behaviorTree.SetVariableValue("IsStun", false);
+
+				TriggerShoot = CanHit(gameData, ShootTimeTolerance);
+				if (TriggerShoot && new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds - ShootStartTimer >= 2000)
+				{
+					ShootStartTimer = new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds;
+					_behaviorTree.SetVariableValue("TriggerShoot", TriggerShoot);
+				}
+				else
+				{
+					_behaviorTree.SetVariableValue("TriggerShoot", false);
+				}
+
+				TriggerMakeShockwave = CanMakeShockwave(gameData);
+				if (TriggerMakeShockwave && new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds - ShockwaveStartTimer >= 2000)
+				{
+					ShockwaveStartTimer = new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds;
+					_behaviorTree.SetVariableValue("TriggerMakeShockwave", TriggerMakeShockwave);
+				}
+				else
+				{
+					_behaviorTree.SetVariableValue("TriggerMakeShockwave", false);
+				}
 			}
 
 			_behaviorTree.SetVariableValue("DistanceWithEnemy", Vector2.Distance(gameData.SpaceShips[0].Position, gameData.SpaceShips[1].Position));

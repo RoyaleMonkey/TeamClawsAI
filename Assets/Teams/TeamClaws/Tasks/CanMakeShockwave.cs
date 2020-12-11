@@ -5,13 +5,14 @@ using BehaviorDesigner.Runtime;
 
 namespace TeamClaws
 {
-    public class IsEnemyClose : Conditional
+    public class CanMakeShockwave : Conditional
     {
         public SharedFloat DistanceWithEnemy;
+        public SharedBool TriggerMakeShockwave;
         public float Distance;
         public override TaskStatus OnUpdate()
         {
-            if (DistanceWithEnemy.Value <= Distance)
+            if (DistanceWithEnemy.Value <= Distance && TriggerMakeShockwave.Value)
                 return TaskStatus.Success;
             else
                 return TaskStatus.Failure;
